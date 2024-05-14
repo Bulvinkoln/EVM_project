@@ -150,86 +150,35 @@
         )} чел./час`;
 
         // Применение цветовой градации
-        applyColor(
-          document.getElementById("sv"),
-          sv,
-          "green",
-          "yellow",
-          "red",
-          0,
-          -40,
-          -41
-        );
-        applyColor(
-          document.getElementById("cv"),
-          cv,
-          "green",
-          "yellow",
-          "red",
-          0,
-          -40,
-          -41
-        );
-        applyColor(
-          document.getElementById("spi"),
-          spi,
-          "green",
-          "yellow",
-          "red",
-          1,
-          0.96,
-          0.95
-        );
-        applyColor(
-          document.getElementById("cpi"),
-          cpi,
-          "green",
-          "yellow",
-          "red",
-          1,
-          0.96,
-          0.95
-        );
-        applyColor(
-          document.getElementById("eac"),
-          eac,
-          "green",
-          "yellow",
-          "red",
-          bac,
-          bac + 40,
-          bac + 41
-        );
-        applyColor(
-          document.getElementById("vac"),
-          vac,
-          "green",
-          "yellow",
-          "red",
-          0,
-          -40,
-          -41
-        );
+        applyColor(document.getElementById("sv"), sv, 0, -40);
+        applyColor(document.getElementById("cv"), cv, 0, -40);
+        applyColor(document.getElementById("spi"), spi, 1, 0.96);
+        applyColor(document.getElementById("cpi"), cpi, 1, 0.96);
+        applyColorEAC(document.getElementById("eac"), eac, bac);
+        applyColor(document.getElementById("vac"), vac, 0, -40);
       }
 
       function applyColor(
         element,
         value,
-        greenClass,
-        yellowClass,
-        redClass,
         greenThreshold,
-        yellowThresholdStart,
-        redThreshold
+        yellowThresholdStart
       ) {
-        if (value >= greenThreshold) {
-          element.className = greenClass;
-        } else if (value >= yellowThresholdStart) {
-          element.className = yellowClass;
-        } else if (value <= redThreshold) {
-          element.className = redClass;
+        element.className =
+          value >= greenThreshold
+            ? "green"
+            : value >= yellowThresholdStart
+            ? "yellow"
+            : "red";
+      }
+
+      function applyColorEAC(element, eac, bac) {
+        if (eac <= bac) {
+          element.className = "green";
+        } else if (eac <= bac + 40) {
+          element.className = "yellow";
         } else {
-          element.className = "";
+          element.className = "red";
         }
       }
     </script>
