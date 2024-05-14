@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Метод освоенного объема (EVM)</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+      }
+      label,
+      input {
+        display: block;
+        margin: 10px 0;
+      }
+      button {
+        margin: 20px 0;
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .results {
+        margin-top: 20px;
+      }
+      .results div {
+        margin: 5px 0;
+      }
+      .green {
+        color: green;
+      }
+      .yellow {
+        color: orange;
+      }
+      .red {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Метод освоенного объема (EVM)</h1>
+
+      <label for="totalDays">Всего дней (проект/этап) (S):</label>
+      <input type="number" id="totalDays" value="31" />
+
+      <label for="daysPassed">Дней прошло (T):</label>
+      <input type="number" id="daysPassed" value="17" />
+
+      <label for="bac">Утвержденный бюджет (BAC) (чел./час):</label>
+      <input type="number" id="bac" value="1525" />
+
+      <label for="percentComplete">% выполненных работ:</label>
+      <input type="number" id="percentComplete" step="0.01" value="52" />
+
+      <label for="ac">Фактический объем на текущую дату (AC) (чел./час):</label>
+      <input type="number" id="ac" value="833" />
+
+      <button onclick="calculateEVM()">Рассчитать</button>
+
+      <div class="results">
+        <div id="pv"></div>
+        <div id="ev"></div>
+        <div id="sv" class="result"></div>
+        <div id="cv" class="result"></div>
+        <div id="spi" class="result"></div>
+        <div id="cpi" class="result"></div>
+        <div id="eac" class="result"></div>
+        <div id="etc"></div>
+        <div id="vac" class="result"></div>
+      </div>
+    </div>
+
+    <script>
+      function calculateEVM() {
+        const totalDays = parseFloat(
+          document.getElementById("totalDays").value
+        );
+        const daysPassed = parseFloat(
+          document.getElementById("daysPassed").value
+        );
+        const bac = parseFloat(document.getElementById("bac").value);
+        const percentComplete =
+          parseFloat(document.getElementById("percentComplete").value) / 100;
+        const ac = parseFloat(document.getElementById("ac").value);
+
+        if (
+          isNaN(totalDays) ||
+          isNaN(daysPassed) ||
+          isNaN(bac) ||
+          isNaN(percentComplete) ||
+          isNaN(ac)
+        ) {
+          alert("Пожалуйста, введите все значения.");
+          return;
+        }
+
+        // Расчет показателей
+        const pv = (daysPassed / totalDays) * bac;
+        const ev = percentComplete * bac;
+        const sv = ev - pv;
+        const cv = ev - ac;
+        const spi = ev / pv;
+        const cpi = ev / ac;
+        const eac = bac / cpi;
+        const etc = eac - ac;
+        const vac = bac - eac;
+
+        // Отображение показателей
+        document.getElementById(
+          "pv"
+        ).textContent = `Плановый объем на текущую дату (PV): ${pv.toFixed(
+          1
+        )} чел./час`;
+        document.getElementById(
+          "ev"
+        ).textContent = `Освоенный объем (EV): ${ev.toFixed(1)} чел./час`;
+        document.getElementById(
+          "sv"
+        ).textContent = `Отклонение по срокам (SV): ${sv.toFixed(1)} чел./час`;
+        document.getElementById(
+          "cv"
+        ).textContent = `Отклонение по стоимости (CV): ${cv.toFixed(
+          1
+        )} чел./час`;
+        document.getElementById(
+          "spi"
+        ).textContent = `Индекс выполнения графика (SPI): ${spi.toFixed(2)}`;
+        document.getElementById(
+          "cpi"
+        ).textContent = `Индекс выполнения стоимости (CPI): ${cpi.toFixed(2)}`;
+        document.getElementById(
+          "eac"
+        ).textContent = `Прогнозируемая оценка по завершению (EAC): ${eac.toFixed(
+          1
+        )} чел./час`;
+        document.getElementById(
+          "etc"
+        ).textContent = `Оценка до завершения (ETC): ${etc.toFixed(
+          1
+        )} чел./час`;
+        document.getElementById(
+          "vac"
+        ).textContent = `Отклонение бюджета по завершению (VAC): ${vac.toFixed(
+          1
+        )} чел./час`;
+
+        // Применение цветовой градации
+        applyColor(
+          document.getElementById("sv"),
+          sv,
+          "green",
+          "yellow",
+          "red",
+          0,
+          -40,
+          -41
+        );
+        applyColor(
+          document.getElementById("cv"),
+          cv,
+          "green",
+          "yellow",
+          "red",
+          0,
+          -40,
+          -41
+        );
+        applyColor(
+          document.getElementById("spi"),
+          spi,
+          "green",
+          "yellow",
+          "red",
+          1,
+          0.96,
+          0.95
+        );
+        applyColor(
+          document.getElementById("cpi"),
+          cpi,
+          "green",
+          "yellow",
+          "red",
+          1,
+          0.96,
+          0.95
+        );
+        applyColor(
+          document.getElementById("eac"),
+          eac,
+          "green",
+          "yellow",
+          "red",
+          bac,
+          bac + 40,
+          bac + 41
+        );
+        applyColor(
+          document.getElementById("vac"),
+          vac,
+          "green",
+          "yellow",
+          "red",
+          0,
+          -40,
+          -41
+        );
+      }
+
+      function applyColor(
+        element,
+        value,
+        greenClass,
+        yellowClass,
+        redClass,
+        greenThreshold,
+        yellowThresholdStart,
+        redThreshold
+      ) {
+        if (value >= greenThreshold) {
+          element.className = greenClass;
+        } else if (value >= yellowThresholdStart) {
+          element.className = yellowClass;
+        } else if (value <= redThreshold) {
+          element.className = redClass;
+        } else {
+          element.className = "";
+        }
+      }
+    </script>
+  </body>
+</html>
