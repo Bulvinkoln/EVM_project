@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  .container {
+    max-width: 800px;
+    margin: auto;
+  }
+  label,
+  input {
+    display: block;
+    margin: 10px 0;
+  }
+  button {
+    margin: 20px 0;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .results {
+    margin-top: 20px;
+  }
+  .results div {
+    margin: 5px 0;
+  }
+  .green {
+    color: green;
+  }
+  .yellow {
+    color: orange;
+  }
+  .red {
+    color: red;
+  }
