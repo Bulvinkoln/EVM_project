@@ -490,6 +490,82 @@ body {
   line-height: 1.4;
 }
 
+/* Logic Hints */
+.logic-hints {
+  margin-bottom: 32px;
+  background: var(--surface-color);
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.logic-hints h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.hints-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.hint-card {
+  background: var(--background-color);
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.hint-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+}
+
+.hint-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.hint-card h4 {
+  color: var(--primary-color);
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint-card p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.hint-card p:last-child {
+  margin-bottom: 0;
+}
+
+.hint-card strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Chart Section */
 .chart-section {
   margin-bottom: 32px;
@@ -700,6 +776,33 @@ body {
     gap: 12px;
   }
   
+  .logic-hints {
+    padding: 20px;
+  }
+  
+  .logic-hints h3 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+  }
+  
+  .hints-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .hint-card {
+    padding: 16px;
+  }
+  
+  .hint-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  
+  .hint-card p {
+    font-size: 0.8rem;
+  }
+  
   .chart-section {
     padding: 20px;
   }
@@ -806,6 +909,29 @@ body {
   .forecast-section h3 {
     font-size: 1.2rem;
     margin-bottom: 16px;
+  }
+  
+  .logic-hints {
+    padding: 16px;
+  }
+  
+  .logic-hints h3 {
+    font-size: 1.2rem;
+    margin-bottom: 14px;
+  }
+  
+  .hint-card {
+    padding: 14px;
+  }
+  
+  .hint-card h4 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .hint-card p {
+    font-size: 0.75rem;
+    line-height: 1.4;
   }
   
   .metric-card,

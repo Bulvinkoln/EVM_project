@@ -17,6 +17,9 @@ const ERROR_MESSAGES = {
 // Переменная для хранения экземпляра графика
 let evmChart = null;
 
+// Переменная для debounce функции обновления графика
+let chartUpdateTimeout = null;
+
 /**
  * Основная функция расчета показателей EVM
  */
@@ -101,9 +104,27 @@ function calculateEVMMetrics(inputs) {
   const spi = pv !== 0 ? ev / pv : 0;
   const cpi = ac !== 0 ? ev / ac : 0;
   
+  // Проверка корректности данных для прогнозов
+  if (ac < 0 || bac < 0 || percentComplete < 0 || percentComplete > 1) {
+    console.warn('Внимание: Некорректные входные данные для прогнозов');
+  }
+  
   // Расчет прогнозных показателей
-  const eac = cpi !== 0 ? bac / cpi : 0;
+  let eac;
+  if (cpi !== 0) {
+    // EAC = AC + (BAC - EV) / CPI - стандартная формула EVM
+    // Это означает: уже потратили + оставшиеся работы / эффективность расходов
+    eac = ac + (bac - ev) / cpi;
+  } else {
+    // Если CPI = 0 (деление на ноль), используем упрощенную формулу
+    // EAC = AC + (BAC - EV) - просто добавляем оставшиеся работы к уже потраченному
+    eac = ac + (bac - ev);
+  }
+  
+  // ETC = EAC - AC - сколько еще нужно потратить до завершения
   const etc = eac - ac;
+  
+  // VAC = BAC - EAC - отклонение от первоначального бюджета
   const vac = bac - eac;
 
   return {
@@ -217,6 +238,9 @@ function applyColorIndicators(metrics) {
   
   // Специальная обработка для EAC
   applyColorToEACCard(document.getElementById("eac"), eac, bac);
+  
+  // Специальная обработка для VAC (более информативная)
+  applyColorToVACCard(document.getElementById("vac"), vac);
 }
 
 /**
@@ -273,6 +297,27 @@ function applyColorToEACCard(card, eac, bac) {
   } else if (eac <= bac + 40) {
     card.classList.add('yellow');
   } else {
+    card.classList.add('red');
+  }
+}
+
+/**
+ * Специальная обработка цвета для VAC
+ */
+function applyColorToVACCard(card, vac) {
+  if (!card) return;
+  
+  // Удаляем предыдущие цветовые классы
+  card.classList.remove('green', 'yellow', 'red');
+  
+  if (vac >= 0) {
+    // VAC >= 0 означает, что проект уложится в бюджет
+    card.classList.add('green');
+  } else if (vac >= -40) {
+    // VAC от -40 до 0 - небольшое превышение бюджета
+    card.classList.add('yellow');
+  } else {
+    // VAC < -40 - значительное превышение бюджета
     card.classList.add('red');
   }
 }
@@ -416,10 +461,84 @@ function updateEVMChart(metrics) {
   // Обновляем данные для каждой линии
   evmChart.data.datasets[0].data = [0, pv, bac]; // PV линия
   evmChart.data.datasets[1].data = [0, ev, bac]; // EV линия  
-  evmChart.data.datasets[2].data = [0, ac, bac]; // AC линия
+  
+  // Всегда используем текущее значение AC из поля ввода для графика
+  const currentAC = parseFloat(document.getElementById("ac").value);
+  if (!isNaN(currentAC)) {
+    evmChart.data.datasets[2].data = [0, currentAC, bac]; // AC линия
+  }
   
   // Обновляем график
   evmChart.update('active');
+}
+
+/**
+ * Обновление графика в реальном времени при изменении полей ввода
+ */
+function updateChartInRealTime() {
+  // Очищаем предыдущий таймаут для debounce
+  if (chartUpdateTimeout) {
+    clearTimeout(chartUpdateTimeout);
+  }
+  
+  // Устанавливаем новый таймаут (300ms задержка)
+  chartUpdateTimeout = setTimeout(() => {
+    try {
+      // Получаем текущие значения полей
+      const totalDays = parseFloat(document.getElementById("totalDays").value);
+      const daysPassed = parseFloat(document.getElementById("daysPassed").value);
+      const bac = parseFloat(document.getElementById("bac").value);
+      const percentComplete = parseFloat(document.getElementById("percentComplete").value) / 100;
+      const ac = parseFloat(document.getElementById("ac").value);
+      
+      // Проверяем валидность данных
+      if (isNaN(totalDays) || isNaN(daysPassed) || isNaN(bac) || isNaN(percentComplete) || isNaN(ac)) {
+        return; // Не обновляем график, если данные невалидны
+      }
+      
+      // Проверяем логику дней
+      if (daysPassed > totalDays) {
+        return; // Не обновляем график при нелогичных данных
+      }
+      
+      // Рассчитываем текущие показатели для графика
+      const pv = (daysPassed / totalDays) * bac;
+      const ev = percentComplete * bac;
+      
+      // Обновляем график только если он существует
+      if (evmChart) {
+        evmChart.data.datasets[0].data = [0, pv, bac]; // PV линия
+        evmChart.data.datasets[1].data = [0, ev, bac]; // EV линия  
+        // AC линия НЕ должна меняться при изменении BAC, daysPassed или percentComplete
+        // evmChart.data.datasets[2].data = [0, ac, bac]; // AC линия
+        
+        // Плавное обновление графика
+        evmChart.update('active');
+      }
+      
+    } catch (error) {
+      console.error('Ошибка при обновлении графика в реальном времени:', error);
+    }
+  }, 300);
+}
+
+/**
+ * Обновление только AC линии на графике
+ */
+function updateACLine() {
+  if (!evmChart) return;
+  
+  try {
+    const ac = parseFloat(document.getElementById("ac").value);
+    const bac = parseFloat(document.getElementById("bac").value);
+    
+    if (!isNaN(ac) && !isNaN(bac)) {
+      evmChart.data.datasets[2].data = [0, ac, bac]; // AC линия
+      evmChart.update('active');
+    }
+  } catch (error) {
+    console.error('Ошибка при обновлении AC линии:', error);
+  }
 }
 
 /**
@@ -444,6 +563,14 @@ function resetForm() {
   console.log('Функция resetForm вызвана');
   
   try {
+    // Очищаем таймаут обновления графика
+    if (chartUpdateTimeout) {
+      clearTimeout(chartUpdateTimeout);
+      chartUpdateTimeout = null;
+    }
+    
+
+    
     // Сброс значений полей ввода
     const totalDaysInput = document.getElementById("totalDays");
     const daysPassedInput = document.getElementById("daysPassed");
@@ -609,6 +736,8 @@ function exportResults() {
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM загружен, инициализация приложения...');
+  
+
   
   // Создание графика
   createEVMChart();
