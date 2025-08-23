@@ -154,7 +154,7 @@ body {
 }
 
 .form-group small {
-  display: block;
+    display: block;
   margin-top: 4px;
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -179,7 +179,7 @@ body {
   border-radius: var(--radius);
   font-size: 0.95rem;
   font-weight: 600;
-  cursor: pointer;
+    cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
   box-shadow: var(--shadow-sm);
@@ -1195,4 +1195,4 @@ input:focus {
   .author-description {
     font-size: 0.75rem;
   }
-}
+  }
