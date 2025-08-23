@@ -40,7 +40,7 @@ function calculateEVM() {
     
   } catch (error) {
     console.error('Ошибка при расчете EVM:', error);
-    alert('Произошла ошибка при расчете. Проверьте введенные данные.');
+    showErrorModal('Ошибка расчета', 'Произошла ошибка при расчете. Проверьте введенные данные.');
   }
 }
 
@@ -58,25 +58,25 @@ function getAndValidateInputs() {
 
   // Проверка на NaN
   if (Object.values(inputs).some(isNaN)) {
-    alert(ERROR_MESSAGES.INVALID_INPUT);
+    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_INPUT);
     return null;
   }
 
   // Проверка на отрицательные значения
   if (Object.values(inputs).some(value => value < 0)) {
-    alert(ERROR_MESSAGES.NEGATIVE_VALUES);
+    showErrorModal('Ошибка ввода', ERROR_MESSAGES.NEGATIVE_VALUES);
     return null;
   }
 
   // Проверка процента выполнения
   if (inputs.percentComplete < 0 || inputs.percentComplete > 100) {
-    alert(ERROR_MESSAGES.INVALID_PERCENT);
+    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_PERCENT);
     return null;
   }
 
   // Проверка логики дней
   if (inputs.daysPassed > inputs.totalDays) {
-    alert(ERROR_MESSAGES.INVALID_DAYS);
+    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_DAYS);
     return null;
   }
 
@@ -380,6 +380,36 @@ function createEVMChart() {
           pointBorderWidth: 2,
           pointRadius: 6,
           pointHoverRadius: 8
+        },
+        {
+          label: 'EAC (Прогноз завершения)',
+          data: [0, 0, 0],
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.05)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.4,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#8b5cf6',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'ETC (Остаток до завершения)',
+          data: [0, 0, 0],
+          borderColor: '#ec4899',
+          backgroundColor: 'rgba(236, 72, 153, 0.05)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.4,
+          borderDash: [3, 3],
+          pointBackgroundColor: '#ec4899',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         }
       ]
     },
@@ -388,7 +418,20 @@ function createEVMChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false, // Скрываем стандартную легенду, используем свою
+          display: true, // Показываем легенду для прогнозных линий
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: {
+              size: 12,
+              weight: '500'
+            },
+            filter: function(legendItem, chartData) {
+              // Показываем только прогнозные линии в легенде
+              return legendItem.datasetIndex >= 3;
+            }
+          }
         },
         tooltip: {
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -400,7 +443,17 @@ function createEVMChart() {
           displayColors: true,
           callbacks: {
             label: function(context) {
-              return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' чел./час';
+              const value = context.parsed.y.toFixed(1);
+              const label = context.dataset.label;
+              
+              // Добавляем дополнительную информацию для прогнозных линий
+              if (label.includes('EAC')) {
+                return `${label}: ${value} чел./час (прогноз)`;
+              } else if (label.includes('ETC')) {
+                return `${label}: ${value} чел./час (остаток)`;
+              } else {
+                return `${label}: ${value} чел./час`;
+              }
             }
           }
         }
@@ -456,7 +509,7 @@ function createEVMChart() {
 function updateEVMChart(metrics) {
   if (!evmChart) return;
   
-  const { pv, ev, ac, bac } = metrics;
+  const { pv, ev, ac, bac, eac, etc } = metrics;
   
   // Обновляем данные для каждой линии
   evmChart.data.datasets[0].data = [0, pv, bac]; // PV линия
@@ -466,6 +519,15 @@ function updateEVMChart(metrics) {
   const currentAC = parseFloat(document.getElementById("ac").value);
   if (!isNaN(currentAC)) {
     evmChart.data.datasets[2].data = [0, currentAC, bac]; // AC линия
+  }
+  
+  // Обновляем прогнозные линии
+  if (eac !== undefined && !isNaN(eac)) {
+    evmChart.data.datasets[3].data = [0, currentAC, eac]; // EAC линия (от текущего AC до прогноза)
+  }
+  
+  if (etc !== undefined && !isNaN(etc)) {
+    evmChart.data.datasets[4].data = [0, 0, etc]; // ETC линия (от 0 до остатка работ)
   }
   
   // Обновляем график
@@ -505,12 +567,21 @@ function updateChartInRealTime() {
       const pv = (daysPassed / totalDays) * bac;
       const ev = percentComplete * bac;
       
+      // Рассчитываем прогнозные показатели для графика
+      const cpi = ac !== 0 ? ev / ac : 1;
+      const eac = cpi !== 0 ? ac + (bac - ev) / cpi : ac + (bac - ev);
+      const etc = eac - ac;
+      
       // Обновляем график только если он существует
       if (evmChart) {
         evmChart.data.datasets[0].data = [0, pv, bac]; // PV линия
         evmChart.data.datasets[1].data = [0, ev, bac]; // EV линия  
         // AC линия НЕ должна меняться при изменении BAC, daysPassed или percentComplete
         // evmChart.data.datasets[2].data = [0, ac, bac]; // AC линия
+        
+        // Обновляем прогнозные линии
+        evmChart.data.datasets[3].data = [0, ac, eac]; // EAC линия
+        evmChart.data.datasets[4].data = [0, 0, etc]; // ETC линия
         
         // Плавное обновление графика
         evmChart.update('active');
@@ -531,9 +602,20 @@ function updateACLine() {
   try {
     const ac = parseFloat(document.getElementById("ac").value);
     const bac = parseFloat(document.getElementById("bac").value);
+    const percentComplete = parseFloat(document.getElementById("percentComplete").value) / 100;
     
-    if (!isNaN(ac) && !isNaN(bac)) {
+    if (!isNaN(ac) && !isNaN(bac) && !isNaN(percentComplete)) {
       evmChart.data.datasets[2].data = [0, ac, bac]; // AC линия
+      
+      // Рассчитываем и обновляем прогнозные линии
+      const ev = percentComplete * bac;
+      const cpi = ac !== 0 ? ev / ac : 1;
+      const eac = cpi !== 0 ? ac + (bac - ev) / cpi : ac + (bac - ev);
+      const etc = eac - ac;
+      
+      evmChart.data.datasets[3].data = [0, ac, eac]; // EAC линия
+      evmChart.data.datasets[4].data = [0, 0, etc]; // ETC линия
+      
       evmChart.update('active');
     }
   } catch (error) {
@@ -562,6 +644,25 @@ function resetEVMChart() {
 function resetForm() {
   console.log('Функция resetForm вызвана');
   
+  // Показываем модальное окно с подтверждением
+  showConfirmModal(
+    'Подтверждение сброса',
+    'Вы уверены, что хотите сбросить все данные и результаты? Это действие нельзя отменить.',
+    () => {
+      // Действие при подтверждении
+      performReset();
+    },
+    () => {
+      // Действие при отмене
+      console.log('Сброс отменен пользователем');
+    }
+  );
+}
+
+/**
+ * Выполнение сброса формы
+ */
+function performReset() {
   try {
     // Очищаем таймаут обновления графика
     if (chartUpdateTimeout) {
@@ -602,7 +703,7 @@ function resetForm() {
     
   } catch (error) {
     console.error('Ошибка при сбросе формы:', error);
-    alert('Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
+    showErrorModal('Ошибка сброса', 'Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
   }
 }
 
@@ -727,9 +828,12 @@ function exportResults() {
     
     console.log('Результаты успешно экспортированы');
     
+    // Показываем модальное окно с успехом
+    showSuccessModal('Экспорт завершен!', 'Результаты EVM успешно экспортированы в JSON файл.');
+    
   } catch (error) {
     console.error('Ошибка при экспорте:', error);
-    alert('Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
+    showErrorModal('Ошибка экспорта', 'Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
   }
 }
 
@@ -771,6 +875,11 @@ document.addEventListener('DOMContentLoaded', function() {
     exportBtn.addEventListener('click', exportResults);
     console.log('Обработчик для кнопки "Экспорт" добавлен');
   }
+  
+  // Показываем приветственное модальное окно с небольшой задержкой
+  setTimeout(() => {
+    showWelcomeModal();
+  }, 500);
   
   console.log('Инициализация завершена');
 });

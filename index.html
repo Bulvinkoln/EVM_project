@@ -23,80 +23,97 @@
         <div class="input-panel">
           <h2>Параметры проекта</h2>
           
+          
+          
           <div class="form-group">
             <label for="totalDays">Всего дней (S)</label>
-            <input 
-              type="number" 
-              id="totalDays" 
-              value="31" 
-              min="1" 
-              max="3650"
-              placeholder="31"
-              required
-              oninput="updateChartInRealTime()"
-            />
-            <small>Общая продолжительность</small>
+                         <input 
+               type="number" 
+               id="totalDays" 
+               value="60" 
+               min="1" 
+               max="3650"
+               placeholder="60"
+               required
+               oninput="updateChartInRealTime()"
+             />
+                         <div class="input-footer">
+               <small>Общая продолжительность</small>
+               <span class="info-icon" title="Идеально: 30-90 дней для средних проектов">ℹ️</span>
+             </div>
           </div>
 
           <div class="form-group">
             <label for="daysPassed">Дней прошло (T)</label>
-            <input 
-              type="number" 
-              id="daysPassed" 
-              value="17" 
-              min="0" 
-              max="3650"
-              placeholder="17"
-              required
-              oninput="updateChartInRealTime()"
-            />
-            <small>С начала проекта</small>
+                         <input 
+               type="number" 
+               id="daysPassed" 
+               value="35" 
+               min="0" 
+               max="3650"
+               placeholder="35"
+               required
+               oninput="updateChartInRealTime()"
+             />
+                         <div class="input-footer">
+               <small>С начала проекта</small>
+               <span class="info-icon" title="Идеально: 50-70% от общего времени">ℹ️</span>
+             </div>
           </div>
 
           <div class="form-group">
             <label for="bac">Бюджет (BAC)</label>
-            <input 
-              type="number" 
-              id="bac" 
-              value="1525" 
-              min="0.01" 
-              step="0.01"
-              placeholder="1525"
-              required
-              oninput="updateChartInRealTime()"
-            />
-            <small>чел./час</small>
+                         <input 
+               type="number" 
+               id="bac" 
+               value="1500" 
+               min="0.01" 
+               step="0.01"
+               placeholder="1500"
+               required
+               oninput="updateChartInRealTime()"
+             />
+                         <div class="input-footer">
+               <small>чел./час</small>
+               <span class="info-icon" title="Идеально: 1000-2000 ч/ч для средних проектов">ℹ️</span>
+             </div>
           </div>
 
           <div class="form-group">
             <label for="percentComplete">% выполнено</label>
-            <input 
-              type="number" 
-              id="percentComplete" 
-              step="0.01" 
-              value="52" 
-              min="0" 
-              max="100"
-              placeholder="52"
-              required
-              oninput="updateChartInRealTime()"
-            />
-            <small>0-100%</small>
+                         <input 
+               type="number" 
+               id="percentComplete" 
+               step="0.01" 
+               value="60" 
+               min="0" 
+               max="100"
+               placeholder="60"
+               required
+               oninput="updateChartInRealTime()"
+             />
+                         <div class="input-footer">
+               <small>0-100%</small>
+               <span class="info-icon" title="Идеально: 40-80% для анализа в середине проекта">ℹ️</span>
+             </div>
           </div>
 
           <div class="form-group">
             <label for="ac">Факт. объем (AC)</label>
-            <input 
-              type="number" 
-              id="ac" 
-              value="833" 
-              min="0" 
-              step="0.01"
-              placeholder="833"
-              required
-              oninput="updateACLine()"
-            />
-            <small>чел./час</small>
+                         <input 
+               type="number" 
+               id="ac" 
+               value="900" 
+               min="0" 
+               step="0.01"
+               placeholder="900"
+               required
+               oninput="updateACLine()"
+             />
+                         <div class="input-footer">
+               <small>чел./час</small>
+               <span class="info-icon" title="Идеально: близко к EV для хорошего управления">ℹ️</span>
+             </div>
           </div>
 
           <div class="button-group">
@@ -112,6 +129,8 @@
               <span class="btn-icon">💾</span>
               Экспорт
             </button>
+            
+            
           </div>
         </div>
       </aside>
@@ -263,7 +282,9 @@
 
         <!-- Логические подсказки -->
         <section class="logic-hints">
-          <h3>💡 Логика расчетов</h3>
+          <div style="margin-bottom: 20px;">
+            <h3>💡 Логика расчетов</h3>
+          </div>
           <div class="hints-grid">
             <div class="hint-card">
               <h4>🔍 Почему PV меняется при изменении BAC?</h4>
@@ -313,6 +334,7 @@
       </main>
     </div>
 
+    <script src="modal.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
