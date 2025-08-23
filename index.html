@@ -2,66 +2,71 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Метод освоенного объема (EVM) - Калькулятор</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>EVM Calculator - Калькулятор показателей управления проектами</title>
     <meta name="description" content="Калькулятор для расчета показателей управления проектами по методу EVM" />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <div class="container">
-      <header class="header">
-        <h1>Метод освоенного объема (EVM)</h1>
-        <p class="subtitle">Калькулятор показателей управления проектами</p>
-      </header>
-
-      <main class="main-content">
-        <section class="input-section">
-          <h2>Входные параметры</h2>
+    <div class="app-container">
+      <!-- Боковая панель с вводом данных -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h1>EVM Calculator</h1>
+          <p class="subtitle">Метод освоенного объема</p>
+        </div>
+        
+        <div class="input-panel">
+          <h2>Параметры проекта</h2>
           
           <div class="form-group">
-            <label for="totalDays">Всего дней (проект/этап) (S):</label>
+            <label for="totalDays">Всего дней (S)</label>
             <input 
               type="number" 
               id="totalDays" 
               value="31" 
               min="1" 
               max="3650"
-              aria-describedby="totalDaysHelp"
+              placeholder="31"
               required
             />
-            <small id="totalDaysHelp">Общее количество дней проекта или этапа</small>
+            <small>Общая продолжительность</small>
           </div>
 
           <div class="form-group">
-            <label for="daysPassed">Дней прошло (T):</label>
+            <label for="daysPassed">Дней прошло (T)</label>
             <input 
               type="number" 
               id="daysPassed" 
               value="17" 
               min="0" 
               max="3650"
-              aria-describedby="daysPassedHelp"
+              placeholder="17"
               required
             />
-            <small id="daysPassedHelp">Количество дней с начала проекта</small>
+            <small>С начала проекта</small>
           </div>
 
           <div class="form-group">
-            <label for="bac">Утвержденный бюджет (BAC) (чел./час):</label>
+            <label for="bac">Бюджет (BAC)</label>
             <input 
               type="number" 
               id="bac" 
               value="1525" 
               min="0.01" 
               step="0.01"
-              aria-describedby="bacHelp"
+              placeholder="1525"
               required
             />
-            <small id="bacHelp">Общий бюджет проекта в человеко-часах</small>
+            <small>чел./час</small>
           </div>
 
           <div class="form-group">
-            <label for="percentComplete">% выполненных работ:</label>
+            <label for="percentComplete">% выполнено</label>
             <input 
               type="number" 
               id="percentComplete" 
@@ -69,24 +74,24 @@
               value="52" 
               min="0" 
               max="100"
-              aria-describedby="percentCompleteHelp"
+              placeholder="52"
               required
             />
-            <small id="percentCompleteHelp">Процент завершения проекта (0-100%)</small>
+            <small>0-100%</small>
           </div>
 
           <div class="form-group">
-            <label for="ac">Фактический объем на текущую дату (AC) (чел./час):</label>
+            <label for="ac">Факт. объем (AC)</label>
             <input 
               type="number" 
               id="ac" 
               value="833" 
               min="0" 
               step="0.01"
-              aria-describedby="acHelp"
+              placeholder="833"
               required
             />
-            <small id="acHelp">Фактически затраченные человеко-часы</small>
+            <small>чел./час</small>
           </div>
 
           <div class="button-group">
@@ -103,49 +108,162 @@
               Экспорт
             </button>
           </div>
-        </section>
+        </div>
+      </aside>
 
-        <section class="results-section">
-          <h2>Результаты расчета</h2>
-          <div class="results">
-            <div id="pv" class="result-item"></div>
-            <div id="ev" class="result-item"></div>
-            <div id="sv" class="result-item"></div>
-            <div id="cv" class="result-item"></div>
-            <div id="spi" class="result-item"></div>
-            <div id="cpi" class="result-item"></div>
-            <div id="eac" class="result-item"></div>
-            <div id="etc" class="result-item"></div>
-            <div id="vac" class="result-item"></div>
+      <!-- Основной контент -->
+      <main class="main-content">
+        <!-- Заголовок результатов -->
+        <header class="results-header">
+          <h2>Результаты расчета EVM</h2>
+        </header>
+
+        <!-- Основные показатели -->
+        <section class="metrics-grid">
+          <div class="metric-card primary" id="pv">
+            <div class="metric-header">
+              <h3>PV</h3>
+              <span class="metric-label">Плановый объем</span>
+            </div>
+            <div class="metric-value">-</div>
+            <div class="metric-unit">чел./час</div>
+          </div>
+
+          <div class="metric-card primary" id="ev">
+            <div class="metric-header">
+              <h3>EV</h3>
+              <span class="metric-label">Освоенный объем</span>
+            </div>
+            <div class="metric-value">-</div>
+            <div class="metric-unit">чел./час</div>
+          </div>
+
+          <div class="metric-card variance" id="sv">
+            <div class="metric-header">
+              <h3>SV</h3>
+              <span class="metric-label">Отклонение по срокам</span>
+            </div>
+            <div class="metric-value">-</div>
+            <div class="metric-unit">чел./час</div>
+          </div>
+
+          <div class="metric-card variance" id="cv">
+            <div class="metric-header">
+              <h3>CV</h3>
+              <span class="metric-label">Отклонение по стоимости</span>
+            </div>
+            <div class="metric-value">-</div>
+            <div class="metric-unit">чел./час</div>
           </div>
         </section>
 
-        <section class="info-section">
-          <h2>Информация о показателях</h2>
-          <div class="info-grid">
-            <div class="info-card">
-              <h3>PV (Planned Value)</h3>
-              <p>Плановый объем работ на текущую дату</p>
+        <!-- График EVM показателей -->
+        <section class="chart-section">
+          <h3>График EVM показателей</h3>
+          <div class="chart-container">
+            <canvas id="evmChart" width="400" height="200"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color pv-color"></span>
+              <span>PV (Плановый объем)</span>
             </div>
-            <div class="info-card">
-              <h3>EV (Earned Value)</h3>
-              <p>Стоимость выполненных работ на текущую дату</p>
+            <div class="legend-item">
+              <span class="legend-color ev-color"></span>
+              <span>EV (Освоенный объем)</span>
             </div>
-            <div class="info-card">
-              <h3>SV (Schedule Variance)</h3>
-              <p>Отклонение по срокам выполнения работ</p>
-            </div>
-            <div class="info-card">
-              <h3>CV (Cost Variance)</h3>
-              <p>Отклонение по стоимости выполнения работ</p>
+            <div class="legend-item">
+              <span class="legend-color ac-color"></span>
+              <span>AC (Фактический объем)</span>
             </div>
           </div>
         </section>
+
+        <!-- Индексы производительности -->
+        <section class="performance-section">
+          <h3>Индексы производительности</h3>
+          <div class="performance-grid">
+            <div class="performance-card" id="spi">
+              <div class="performance-header">
+                <h4>SPI</h4>
+                <span>Индекс выполнения графика</span>
+              </div>
+              <div class="performance-value">-</div>
+              <div class="performance-status">-</div>
+            </div>
+
+            <div class="performance-card" id="cpi">
+              <div class="performance-header">
+                <h4>CPI</h4>
+                <span>Индекс выполнения стоимости</span>
+              </div>
+              <div class="performance-value">-</div>
+              <div class="performance-status">-</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Прогнозные показатели -->
+        <section class="forecast-section">
+          <h3>Прогнозные показатели</h3>
+          <div class="forecast-grid">
+            <div class="forecast-card" id="eac">
+              <div class="forecast-header">
+                <h4>EAC</h4>
+                <span>Оценка по завершению</span>
+              </div>
+              <div class="forecast-value">-</div>
+              <div class="forecast-unit">чел./час</div>
+            </div>
+
+            <div class="forecast-card" id="etc">
+              <div class="forecast-header">
+                <h4>ETC</h4>
+                <span>Оценка до завершения</span>
+              </div>
+              <div class="forecast-value">-</div>
+              <div class="forecast-unit">чел./час</div>
+            </div>
+
+            <div class="forecast-card" id="vac">
+              <div class="forecast-header">
+                <h4>VAC</h4>
+                <span>Отклонение бюджета</span>
+              </div>
+              <div class="forecast-value">-</div>
+              <div class="forecast-unit">чел./час</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Информационная панель -->
+        <section class="info-panel">
+          <div class="info-card">
+            <h4>📊 PV (Planned Value)</h4>
+            <p>Плановый объем работ на текущую дату</p>
+          </div>
+          <div class="info-card">
+            <h4>✅ EV (Earned Value)</h4>
+            <p>Стоимость выполненных работ на текущую дату</p>
+          </div>
+          <div class="info-card">
+            <h4>⏰ SV (Schedule Variance)</h4>
+            <p>Отклонение по срокам выполнения работ</p>
+          </div>
+          <div class="info-card">
+            <h4>💰 CV (Cost Variance)</h4>
+            <p>Отклонение по стоимости выполнения работ</p>
+          </div>
+        </section>
+
+        <!-- Информация об авторе -->
+        <footer class="author-footer">
+          <div class="author-info">
+            <p>Разработано руководителем проектов <strong>Владимиром Якимковым</strong></p>
+            <p class="author-description">Профессиональный инструмент для управления проектами по методу EVM</p>
+          </div>
+        </footer>
       </main>
-
-      <footer class="footer">
-        <p>&copy; 2024 EVM Calculator. Метод освоенного объема для управления проектами.</p>
-      </footer>
     </div>
 
     <script src="index.js"></script>
