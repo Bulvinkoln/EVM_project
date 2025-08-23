@@ -3,41 +3,149 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Метод освоенного объема (EVM)</title>
+    <title>Метод освоенного объема (EVM) - Калькулятор</title>
+    <meta name="description" content="Калькулятор для расчета показателей управления проектами по методу EVM" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="container">
-      <h1>Метод освоенного объема (EVM)</h1>
+      <header class="header">
+        <h1>Метод освоенного объема (EVM)</h1>
+        <p class="subtitle">Калькулятор показателей управления проектами</p>
+      </header>
 
-      <label for="totalDays">Всего дней (проект/этап) (S):</label>
-      <input type="number" id="totalDays" value="31" />
+      <main class="main-content">
+        <section class="input-section">
+          <h2>Входные параметры</h2>
+          
+          <div class="form-group">
+            <label for="totalDays">Всего дней (проект/этап) (S):</label>
+            <input 
+              type="number" 
+              id="totalDays" 
+              value="31" 
+              min="1" 
+              max="3650"
+              aria-describedby="totalDaysHelp"
+              required
+            />
+            <small id="totalDaysHelp">Общее количество дней проекта или этапа</small>
+          </div>
 
-      <label for="daysPassed">Дней прошло (T):</label>
-      <input type="number" id="daysPassed" value="17" />
+          <div class="form-group">
+            <label for="daysPassed">Дней прошло (T):</label>
+            <input 
+              type="number" 
+              id="daysPassed" 
+              value="17" 
+              min="0" 
+              max="3650"
+              aria-describedby="daysPassedHelp"
+              required
+            />
+            <small id="daysPassedHelp">Количество дней с начала проекта</small>
+          </div>
 
-      <label for="bac">Утвержденный бюджет (BAC) (чел./час):</label>
-      <input type="number" id="bac" value="1525" />
+          <div class="form-group">
+            <label for="bac">Утвержденный бюджет (BAC) (чел./час):</label>
+            <input 
+              type="number" 
+              id="bac" 
+              value="1525" 
+              min="0.01" 
+              step="0.01"
+              aria-describedby="bacHelp"
+              required
+            />
+            <small id="bacHelp">Общий бюджет проекта в человеко-часах</small>
+          </div>
 
-      <label for="percentComplete">% выполненных работ:</label>
-      <input type="number" id="percentComplete" step="0.01" value="52" />
+          <div class="form-group">
+            <label for="percentComplete">% выполненных работ:</label>
+            <input 
+              type="number" 
+              id="percentComplete" 
+              step="0.01" 
+              value="52" 
+              min="0" 
+              max="100"
+              aria-describedby="percentCompleteHelp"
+              required
+            />
+            <small id="percentCompleteHelp">Процент завершения проекта (0-100%)</small>
+          </div>
 
-      <label for="ac">Фактический объем на текущую дату (AC) (чел./час):</label>
-      <input type="number" id="ac" value="833" />
+          <div class="form-group">
+            <label for="ac">Фактический объем на текущую дату (AC) (чел./час):</label>
+            <input 
+              type="number" 
+              id="ac" 
+              value="833" 
+              min="0" 
+              step="0.01"
+              aria-describedby="acHelp"
+              required
+            />
+            <small id="acHelp">Фактически затраченные человеко-часы</small>
+          </div>
 
-      <button onclick="calculateEVM()">Рассчитать</button>
+          <div class="button-group">
+            <button type="button" onclick="calculateEVM()" class="btn btn-primary">
+              <span class="btn-icon">📊</span>
+              Рассчитать
+            </button>
+            <button type="button" onclick="resetForm()" class="btn btn-secondary">
+              <span class="btn-icon">🔄</span>
+              Сбросить
+            </button>
+            <button type="button" onclick="exportResults()" class="btn btn-export" id="exportBtn" disabled>
+              <span class="btn-icon">💾</span>
+              Экспорт
+            </button>
+          </div>
+        </section>
 
-      <div class="results">
-        <div id="pv"></div>
-        <div id="ev"></div>
-        <div id="sv" class="result"></div>
-        <div id="cv" class="result"></div>
-        <div id="spi" class="result"></div>
-        <div id="cpi" class="result"></div>
-        <div id="eac" class="result"></div>
-        <div id="etc"></div>
-        <div id="vac" class="result"></div>
-      </div>
+        <section class="results-section">
+          <h2>Результаты расчета</h2>
+          <div class="results">
+            <div id="pv" class="result-item"></div>
+            <div id="ev" class="result-item"></div>
+            <div id="sv" class="result-item"></div>
+            <div id="cv" class="result-item"></div>
+            <div id="spi" class="result-item"></div>
+            <div id="cpi" class="result-item"></div>
+            <div id="eac" class="result-item"></div>
+            <div id="etc" class="result-item"></div>
+            <div id="vac" class="result-item"></div>
+          </div>
+        </section>
+
+        <section class="info-section">
+          <h2>Информация о показателях</h2>
+          <div class="info-grid">
+            <div class="info-card">
+              <h3>PV (Planned Value)</h3>
+              <p>Плановый объем работ на текущую дату</p>
+            </div>
+            <div class="info-card">
+              <h3>EV (Earned Value)</h3>
+              <p>Стоимость выполненных работ на текущую дату</p>
+            </div>
+            <div class="info-card">
+              <h3>SV (Schedule Variance)</h3>
+              <p>Отклонение по срокам выполнения работ</p>
+            </div>
+            <div class="info-card">
+              <h3>CV (Cost Variance)</h3>
+              <p>Отклонение по стоимости выполнения работ</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>&copy; 2024 EVM Calculator. Метод освоенного объема для управления проектами.</p>
+      </footer>
     </div>
 
     <script src="index.js"></script>
