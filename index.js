@@ -40,7 +40,7 @@ function calculateEVM() {
     
   } catch (error) {
     console.error('Ошибка при расчете EVM:', error);
-    showErrorModal('Ошибка расчета', 'Произошла ошибка при расчете. Проверьте введенные данные.');
+            alert('Ошибка расчета: Произошла ошибка при расчете. Проверьте введенные данные.');
   }
 }
 
@@ -58,25 +58,25 @@ function getAndValidateInputs() {
 
   // Проверка на NaN
   if (Object.values(inputs).some(isNaN)) {
-    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_INPUT);
+            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_INPUT);
     return null;
   }
 
   // Проверка на отрицательные значения
   if (Object.values(inputs).some(value => value < 0)) {
-    showErrorModal('Ошибка ввода', ERROR_MESSAGES.NEGATIVE_VALUES);
+            alert('Ошибка ввода: ' + ERROR_MESSAGES.NEGATIVE_VALUES);
     return null;
   }
 
   // Проверка процента выполнения
   if (inputs.percentComplete < 0 || inputs.percentComplete > 100) {
-    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_PERCENT);
+            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_PERCENT);
     return null;
   }
 
   // Проверка логики дней
   if (inputs.daysPassed > inputs.totalDays) {
-    showErrorModal('Ошибка ввода', ERROR_MESSAGES.INVALID_DAYS);
+            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_DAYS);
     return null;
   }
 
@@ -644,19 +644,14 @@ function resetEVMChart() {
 function resetForm() {
   console.log('Функция resetForm вызвана');
   
-  // Показываем модальное окно с подтверждением
-  showConfirmModal(
-    'Подтверждение сброса',
-    'Вы уверены, что хотите сбросить все данные и результаты? Это действие нельзя отменить.',
-    () => {
-      // Действие при подтверждении
-      performReset();
-    },
-    () => {
-      // Действие при отмене
-      console.log('Сброс отменен пользователем');
-    }
-  );
+  // Показываем диалог подтверждения
+  if (confirm('Вы уверены, что хотите сбросить все данные и результаты? Это действие нельзя отменить.')) {
+    // Действие при подтверждении
+    performReset();
+  } else {
+    // Действие при отмене
+    console.log('Сброс отменен пользователем');
+  }
 }
 
 /**
@@ -703,7 +698,7 @@ function performReset() {
     
   } catch (error) {
     console.error('Ошибка при сбросе формы:', error);
-    showErrorModal('Ошибка сброса', 'Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
+    alert('Ошибка сброса: Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
   }
 }
 
@@ -828,12 +823,12 @@ function exportResults() {
     
     console.log('Результаты успешно экспортированы');
     
-    // Показываем модальное окно с успехом
-    showSuccessModal('Экспорт завершен!', 'Результаты EVM успешно экспортированы в JSON файл.');
+    // Показываем сообщение об успехе
+    alert('Экспорт завершен! Результаты EVM успешно экспортированы в JSON файл.');
     
   } catch (error) {
     console.error('Ошибка при экспорте:', error);
-    showErrorModal('Ошибка экспорта', 'Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
+    alert('Ошибка экспорта: Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
   }
 }
 

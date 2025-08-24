@@ -1267,74 +1267,7 @@ body {
   }
 }
 
-/* Modal responsive styles */
-@media (max-width: 768px) {
-  .modal {
-    width: 95vw !important;
-    max-height: 90vh !important;
-  }
-  
-  .modal-header {
-    padding: 16px 20px 12px !important;
-  }
-  
-  .modal-body {
-    padding: 16px 20px !important;
-  }
-  
-  .modal-title {
-    font-size: 1.1rem !important;
-  }
-  
-  /* Адаптация для приветственного модального окна */
-  .modal-body div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .modal-body div[style*="font-size: 4rem"] {
-    font-size: 3rem !important;
-  }
-  
-  .modal-body h4[style*="font-size: 1.4rem"] {
-    font-size: 1.2rem !important;
-  }
-}
 
-@media (max-width: 480px) {
-  .modal {
-    width: 98vw !important;
-    max-height: 95vh !important;
-  }
-  
-  .modal-header {
-    padding: 12px 16px 10px !important;
-  }
-  
-  .modal-body {
-    padding: 12px 16px !important;
-  }
-  
-  .modal-title {
-    font-size: 1rem !important;
-  }
-  
-  /* Адаптация для приветственного модального окна на маленьких экранах */
-  .modal-body div[style*="font-size: 4rem"] {
-    font-size: 2.5rem !important;
-  }
-  
-  .modal-body h4[style*="font-size: 1.4rem"] {
-    font-size: 1.1rem !important;
-  }
-  
-  .modal-body h5[style*="font-size: 1.1rem"] {
-    font-size: 1rem !important;
-  }
-  
-  .modal-body p[style*="font-size: 1rem"] {
-    font-size: 0.9rem !important;
-  }
-}
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
