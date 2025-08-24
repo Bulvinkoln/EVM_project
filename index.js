@@ -40,7 +40,7 @@ function calculateEVM() {
     
   } catch (error) {
     console.error('Ошибка при расчете EVM:', error);
-            alert('Ошибка расчета: Произошла ошибка при расчете. Проверьте введенные данные.');
+            console.log('Ошибка расчета: Произошла ошибка при расчете. Проверьте введенные данные.');
   }
 }
 
@@ -58,25 +58,25 @@ function getAndValidateInputs() {
 
   // Проверка на NaN
   if (Object.values(inputs).some(isNaN)) {
-            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_INPUT);
+            console.log('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_INPUT);
     return null;
   }
 
   // Проверка на отрицательные значения
   if (Object.values(inputs).some(value => value < 0)) {
-            alert('Ошибка ввода: ' + ERROR_MESSAGES.NEGATIVE_VALUES);
+            console.log('Ошибка ввода: ' + ERROR_MESSAGES.NEGATIVE_VALUES);
     return null;
   }
 
   // Проверка процента выполнения
   if (inputs.percentComplete < 0 || inputs.percentComplete > 100) {
-            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_PERCENT);
+            console.log('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_PERCENT);
     return null;
   }
 
   // Проверка логики дней
   if (inputs.daysPassed > inputs.totalDays) {
-            alert('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_DAYS);
+            console.log('Ошибка ввода: ' + ERROR_MESSAGES.INVALID_DAYS);
     return null;
   }
 
@@ -92,45 +92,42 @@ function getAndValidateInputs() {
 function calculateEVMMetrics(inputs) {
   const { totalDays, daysPassed, bac, percentComplete, ac } = inputs;
   
-  // Базовые расчеты
-  const pv = (daysPassed / totalDays) * bac;
+  // Проверка на нулевые значения, которые приводят к NaN
+  if (totalDays === 0 || bac === 0) {
+    return {
+      pv: 0, ev: 0, sv: 0, cv: 0, spi: 0, cpi: 0, eac: 0, etc: 0, vac: 0,
+      bac: 0,
+      inputs
+    };
+  }
+  
+  // Базовые расчеты EVM с защитой от деления на ноль
+  const pv = totalDays > 0 ? (daysPassed / totalDays) * bac : 0;
   const ev = percentComplete * bac;
   
   // Расчет отклонений
   const sv = ev - pv;
   const cv = ev - ac;
   
-  // Расчет индексов производительности
+  // Расчет индексов производительности с защитой от деления на ноль
   const spi = pv !== 0 ? ev / pv : 0;
   const cpi = ac !== 0 ? ev / ac : 0;
-  
-  // Проверка корректности данных для прогнозов
-  if (ac < 0 || bac < 0 || percentComplete < 0 || percentComplete > 1) {
-    console.warn('Внимание: Некорректные входные данные для прогнозов');
-  }
   
   // Расчет прогнозных показателей
   let eac;
   if (cpi !== 0) {
-    // EAC = AC + (BAC - EV) / CPI - стандартная формула EVM
-    // Это означает: уже потратили + оставшиеся работы / эффективность расходов
     eac = ac + (bac - ev) / cpi;
   } else {
-    // Если CPI = 0 (деление на ноль), используем упрощенную формулу
-    // EAC = AC + (BAC - EV) - просто добавляем оставшиеся работы к уже потраченному
     eac = ac + (bac - ev);
   }
   
-  // ETC = EAC - AC - сколько еще нужно потратить до завершения
   const etc = eac - ac;
-  
-  // VAC = BAC - EAC - отклонение от первоначального бюджета
   const vac = bac - eac;
 
   return {
     pv, ev, sv, cv, spi, cpi, eac, etc, vac,
-    bac, // для цветовой индикации
-    inputs // для дополнительной информации
+    bac,
+    inputs
   };
 }
 
@@ -192,7 +189,14 @@ function updatePerformanceCard(id, value) {
     }
     
     if (statusElement) {
-      if (value >= 1.0) {
+      // Проверяем, есть ли реальные данные для анализа
+      const hasRealData = value !== 0;
+      
+      if (!hasRealData) {
+        // Если значение равно нулю, показываем нейтральный статус
+        statusElement.textContent = 'Нет данных';
+        statusElement.className = 'performance-status';
+      } else if (value >= 1.0) {
         statusElement.textContent = 'Отлично';
         statusElement.className = 'performance-status green';
       } else if (value >= 0.96) {
@@ -224,6 +228,18 @@ function updateForecastCard(id, value, unit) {
  */
 function applyColorIndicators(metrics) {
   const { sv, cv, spi, cpi, eac, vac, bac } = metrics;
+  
+  // Проверяем, есть ли реальные данные для анализа
+  const hasRealData = bac > 0 && (sv !== 0 || cv !== 0 || spi !== 0 || cpi !== 0);
+  
+  if (!hasRealData) {
+    // Если нет реальных данных (все значения нулевые), убираем все цвета
+    const allCards = document.querySelectorAll('.metric-card, .performance-card, .forecast-card');
+    allCards.forEach(card => {
+      card.classList.remove('green', 'yellow', 'red');
+    });
+    return;
+  }
   
   // Применение цветов к отклонениям
   applyColorToCard(document.getElementById("sv"), sv, COLOR_THRESHOLDS.SCHEDULE);
@@ -629,9 +645,9 @@ function updateACLine() {
 function resetEVMChart() {
   if (!evmChart) return;
   
-  // Сбрасываем данные к нулевым значениям
+  // Сбрасываем данные к пустым значениям
   evmChart.data.datasets.forEach(dataset => {
-    dataset.data = [0, 0, 0];
+    dataset.data = [];
   });
   
   // Обновляем график
@@ -642,16 +658,8 @@ function resetEVMChart() {
  * Сброс формы и результатов
  */
 function resetForm() {
-  console.log('Функция resetForm вызвана');
-  
-  // Показываем диалог подтверждения
-  if (confirm('Вы уверены, что хотите сбросить все данные и результаты? Это действие нельзя отменить.')) {
-    // Действие при подтверждении
-    performReset();
-  } else {
-    // Действие при отмене
-    console.log('Сброс отменен пользователем');
-  }
+  // Сразу выполняем сброс без подтверждения
+  performReset();
 }
 
 /**
@@ -674,13 +682,11 @@ function performReset() {
     const percentCompleteInput = document.getElementById("percentComplete");
     const acInput = document.getElementById("ac");
     
-    if (totalDaysInput) totalDaysInput.value = "31";
-    if (daysPassedInput) daysPassedInput.value = "17";
-    if (bacInput) bacInput.value = "1525";
-    if (percentCompleteInput) percentCompleteInput.value = "52";
-    if (acInput) acInput.value = "833";
-    
-    console.log('Значения полей сброшены');
+    if (totalDaysInput) totalDaysInput.value = "0";
+    if (daysPassedInput) daysPassedInput.value = "0";
+    if (bacInput) bacInput.value = "0";
+    if (percentCompleteInput) percentCompleteInput.value = "0";
+    if (acInput) acInput.value = "0";
     
     // Сброс всех карточек результатов
     resetAllCards();
@@ -689,16 +695,11 @@ function performReset() {
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
       exportBtn.disabled = true;
-      console.log('Кнопка экспорта деактивирована');
-    } else {
-      console.log('Кнопка экспорта не найдена');
     }
-    
-    console.log('Форма успешно сброшена');
     
   } catch (error) {
     console.error('Ошибка при сбросе формы:', error);
-    alert('Ошибка сброса: Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
+    console.log('Ошибка сброса: Произошла ошибка при сбросе формы. Проверьте консоль браузера.');
   }
 }
 
@@ -737,8 +738,6 @@ function resetAllCards() {
   
   // Сброс графика
   resetEVMChart();
-  
-  console.log('Все карточки результатов сброшены');
 }
 
 /**
@@ -821,23 +820,16 @@ function exportResults() {
     link.download = `evm_results_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     
-    console.log('Результаты успешно экспортированы');
-    
-    // Показываем сообщение об успехе
-    alert('Экспорт завершен! Результаты EVM успешно экспортированы в JSON файл.');
+    // Экспорт завершен успешно
     
   } catch (error) {
     console.error('Ошибка при экспорте:', error);
-    alert('Ошибка экспорта: Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
+    console.log('Ошибка экспорта: Произошла ошибка при экспорте результатов. Проверьте консоль браузера.');
   }
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM загружен, инициализация приложения...');
-  
-
-  
   // Создание графика
   createEVMChart();
   
@@ -858,23 +850,18 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (calculateBtn) {
     calculateBtn.addEventListener('click', calculateEVM);
-    console.log('Обработчик для кнопки "Рассчитать" добавлен');
   }
   
   if (resetBtn) {
     resetBtn.addEventListener('click', resetForm);
-    console.log('Обработчик для кнопки "Сбросить" добавлен');
   }
   
   if (exportBtn) {
     exportBtn.addEventListener('click', exportResults);
-    console.log('Обработчик для кнопки "Экспорт" добавлен');
   }
   
   // Показываем приветственное модальное окно с небольшой задержкой
   setTimeout(() => {
     showWelcomeModal();
   }, 500);
-  
-  console.log('Инициализация завершена');
 });
