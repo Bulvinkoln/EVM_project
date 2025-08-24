@@ -1,4 +1,3 @@
-// Функция для показа приветственного модального окна
 function showWelcomeModal() {
   const content = `
     <div style="text-align: center; padding: 20px;">
@@ -48,7 +47,6 @@ function showWelcomeModal() {
      </div>
   `;
   
-  // Создаем элементы модального окна
   const modalOverlay = document.createElement('div');
   modalOverlay.className = 'modal-overlay';
   modalOverlay.style.cssText = `
@@ -80,11 +78,9 @@ function showWelcomeModal() {
 
   modal.innerHTML = content;
 
-  // Добавляем модальное окно на страницу
   modalOverlay.appendChild(modal);
   document.body.appendChild(modalOverlay);
 
-  // Добавляем обработчик клика по фону для закрытия
   modalOverlay.addEventListener('click', function(e) {
       if (e.target === modalOverlay) {
           closeWelcomeModal();
@@ -92,7 +88,6 @@ function showWelcomeModal() {
   });
 }
 
-// Функция закрытия приветственного модального окна
 function closeWelcomeModal() {
     const modalOverlay = document.querySelector('.modal-overlay');
     if (modalOverlay) {
